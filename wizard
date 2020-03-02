@@ -5,6 +5,14 @@
 
 inject_secret() {
 
+  inject_secret_osx() {
+    until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
+      do
+        security add-generic-password -a "$(whoami)" -s "$1" -p
+      done
+    export "$1"="$(security find-generic-password -a "$(whoami)" -s "$1" -w)"
+  }
+  
   inject_secret_pass() {
     until pass list "$1" >/dev/null 2>&1
       do
@@ -14,7 +22,7 @@ inject_secret() {
   }
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    #inject_secret_osx "$1"
+    inject_secret_osx "$1"
   else
     command -v pass >/dev/null || { echo "I require pass (https://passwordstore.org/) but it's not installed.  Aborting." >&2; return 1; }
     inject_secret_pass "$1"
