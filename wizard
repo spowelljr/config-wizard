@@ -1,0 +1,24 @@
+#!/bin/sh
+# exports configs/secrets as environment variables for local development (https://12factor.net/config).
+#
+# Usage: source ./wizard
+
+inject_secret() {
+
+  inject_secret_pass() {
+    until pass list "$1" >/dev/null 2>&1
+      do
+        pass insert "$1"
+      done
+    export "$1"="$(pass show "$1")"
+  }
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    #inject_secret_osx "$1"
+  else
+    command -v pass >/dev/null || { echo "I require pass (https://passwordstore.org/) but it's not installed.  Aborting." >&2; return 1; }
+    inject_secret_pass "$1"
+  fi
+}
+
+inject_secret "SECRET"
