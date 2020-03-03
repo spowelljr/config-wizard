@@ -24,7 +24,7 @@ is_secret() {
 }
 
 export_config() {
-	export "${1%=*}"="${1#*=}"
+	export "${1?}"
 }
 
 export_secret() {
@@ -43,7 +43,7 @@ export_envs() {
 		else
 			export_config "$line"
 		fi
-	done 3<"./config.txt"
+	done 3<"./.env"
 }
 
 export_envs
