@@ -3,30 +3,31 @@
 #
 # Usage: source ./wizard
 
-inject_secret() {
-
-  inject_secret_osx() {
-    until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
-      do
-        security add-generic-password -a "$(whoami)" -s "$1" -p
-      done
-    export "$1"="$(security find-generic-password -a "$(whoami)" -s "$1" -w)"
-  }
-  
-  inject_secret_pass() {
-    until pass list "$1" >/dev/null 2>&1
-      do
-        pass insert "$1"
-      done
-    export "$1"="$(pass show "$1")"
-  }
-
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    inject_secret_osx "$1"
-  else
-    command -v pass >/dev/null || { echo "I require pass (https://passwordstore.org/) but it's not installed.  Aborting." >&2; return 1; }
-    inject_secret_pass "$1"
-  fi
+inject_secret_osx() {
+	until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
+	do
+		echo "$1"
+		security add-generic-password -a "$(whoami)" -s "$1" -p
+	done
+	export "$1"="$(security find-generic-password -a "$(whoami)" -s "$1" -w)"
 }
 
-inject_secret "SECRET"
+inject_secret_pass() {
+	command -v pass >/dev/null || { echo "I require pass (https://passwordstore.org/) but it's not installed.  Aborting." >&2; return 1; }
+	until pass list "$1" >/dev/null 2>&1
+	do
+		pass insert "$1"
+	done
+	export "$1"="$(pass show "$1")"
+}
+
+export_envs() {
+	while read -r line <&3; do
+		case "$(uname -s)" in
+			Darwin*)    inject_secret_osx "$line";;
+			*)          inject_secret_pass "$line";;
+		esac
+	done 3<"./config.txt"
+}
+
+export_envs
