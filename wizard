@@ -3,7 +3,7 @@
 inject_secret_osx() {
 	until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
 	do
-		echo "$1"
+		echo "New password detected: $1"
 		security add-generic-password -a "$(whoami)" -s "$1" -p
 	done
 	export "$1"="$(security find-generic-password -a "$(whoami)" -s "$1" -w)"
@@ -18,12 +18,31 @@ inject_secret_pass() {
 	export "$1"="$(pass show "$1")"
 }
 
+is_secret() {
+	test "${1#*=}" = "$1"
+	return $?
+}
+
+export_config() {
+	export "${1%=*}"="${1#*=}"
+}
+
+export_secret() {
+	case "$(uname -s)" in
+		Darwin*)    inject_secret_osx "$1";;
+		*)          inject_secret_pass "$1";;
+	esac
+}
+
 export_envs() {
 	while read -r line <&3; do
-		case "$(uname -s)" in
-			Darwin*)    inject_secret_osx "$line";;
-			*)          inject_secret_pass "$line";;
-		esac
+		case "$line" in \#*) continue ;; esac
+		if is_secret "$line"
+		then
+			export_secret "$line"
+		else
+			export_config "$line"
+		fi
 	done 3<"./config.txt"
 }
 
