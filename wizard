@@ -34,6 +34,14 @@ export_secret() {
 	esac
 }
 
+check_env_exists() {
+	if [ ! -f "./.env" ]
+        then
+                echo "There is no .env in this directory, this file is required."
+                return 1
+        fi
+}
+
 export_envs() {
 	while read -r line <&3 || [ -n "$line" ]; do
 		case "$line" in \#*|'') continue ;; esac
@@ -43,7 +51,8 @@ export_envs() {
 		else
 			export_config "$line"
 		fi
-	done 3<"./.env"
+	done 3<"$1"
 }
 
-export_envs
+check_env_exists || return 1
+export_envs "./.env"
