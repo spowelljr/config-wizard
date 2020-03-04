@@ -4,7 +4,7 @@ inject_secret_osx() {
 	until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
 	do
 		echo "New password detected: $1"
-		security add-generic-password -a "$(whoami)" -s "$1" -p
+		security add-generic-password -a "$(whoami)" -s "$1" -w
 	done
 	export "$1"="$(security find-generic-password -a "$(whoami)" -s "$1" -w)"
 }
