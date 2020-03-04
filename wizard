@@ -35,7 +35,7 @@ export_secret() {
 }
 
 export_envs() {
-	while read -r line <&3; do
+	while read -r line <&3 || [ -n "$line" ]; do
 		case "$line" in \#*|'') continue ;; esac
 		if is_secret "$line"
 		then
