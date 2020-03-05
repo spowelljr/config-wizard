@@ -1,5 +1,7 @@
 #!/bin/sh
 
+force=1
+
 inject_secret_osx() {
 	until security find-generic-password -a "$(whoami)" -s "$1" > /dev/null 2>&1
 	do
@@ -36,15 +38,28 @@ export_secret() {
 
 check_env_exists() {
 	if [ ! -f "./.env" ]
-        then
-                echo "There is no .env in this directory, this file is required."
-                return 1
-        fi
+	then
+		echo "There is no .env in this directory, this file is required."
+		return 1
+	fi
+}
+
+should_set() {
+	if [ "$force" -eq 0 ] || [ -z "$(printenv "${1%=*}")" ]
+	then
+		return 0
+	else
+		return 1
+	fi
 }
 
 export_envs() {
 	while read -r line <&3 || [ -n "$line" ]; do
 		case "$line" in \#*|'') continue ;; esac
+		if ! should_set "$line"
+		then
+			continue
+		fi
 		if is_secret "$line"
 		then
 			export_secret "$line"
@@ -54,5 +69,25 @@ export_envs() {
 	done 3<"$1"
 }
 
+read_in_flags() {
+	while test $# -gt 0; do
+		case "$1" in
+			-h|--help)
+				echo "-h, --help                show brief help"
+				echo "-f, --force       	  override already set environmental variables"
+				return 0
+				;;
+			-f|--force)
+				force=0
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+}
+
+read_in_flags "$@"
 check_env_exists || return 1
 export_envs "./.env"
