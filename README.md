@@ -20,3 +20,11 @@ API_TOKEN
 ```
 
 Note: The envs will be set for the life of the shell process.
+
+# optional system-wide install
+
+`make install`
+
+# uninstall
+
+`make uninstall`
