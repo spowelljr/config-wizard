@@ -7,9 +7,13 @@ Usage: `source ./wizard`
 This wizard expects a `.env` file.
 
 Example:
+
 ```
 # Config
 FOO=BAR
+
+# Command
+!USER=whoami
 
 # Secret (to indicate a secret exclude '=')
 API_TOKEN
