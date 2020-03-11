@@ -36,6 +36,11 @@ export_secret() {
 	esac
 }
 
+export_cmd() {
+	string=$(echo "$1" | awk '{ string=substr($0, 2); print string; }')
+	export "${string%=*}"="$(${string#*=})"
+}
+
 check_env_exists() {
 	if [ ! -f "./.env" ]
 	then
@@ -55,7 +60,10 @@ should_set() {
 
 export_envs() {
 	while read -r line <&3 || [ -n "$line" ]; do
-		case "$line" in \#*|'') continue ;; esac
+		case "$line" in
+			\#*|'') continue ;;
+			\!*) export_cmd "$line"; continue;;
+		esac
 		if ! should_set "$line"
 		then
 			continue
