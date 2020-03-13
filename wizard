@@ -42,7 +42,7 @@ export_secret() {
 
 export_command() {
 	string=$(echo "$1" | awk '{ string=substr($0, 2); print string; }')
-	export "${string%=*}"="$(${string#*=})"
+	export "${string%=*}"="$(eval "${string#*=}")"
 }
 
 check_env_exists() {
