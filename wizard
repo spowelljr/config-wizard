@@ -20,6 +20,10 @@ inject_secret_pass() {
 	export "$1"="$(pass show "$1")"
 }
 
+is_command() {
+	[ "${1%${1#?}}"x = '!x' ]
+}
+
 is_secret() {
 	test "${1#*=}" = "$1"
 	return $?
@@ -36,7 +40,7 @@ export_secret() {
 	esac
 }
 
-export_cmd() {
+export_command() {
 	string=$(echo "$1" | awk '{ string=substr($0, 2); print string; }')
 	export "${string%=*}"="$(${string#*=})"
 }
@@ -62,15 +66,17 @@ export_envs() {
 	while read -r line <&3 || [ -n "$line" ]; do
 		case "$line" in
 			\#*|'') continue ;;
-			\!*) export_cmd "$line"; continue;;
 		esac
+
 		if ! should_set "$line"
 		then
 			continue
-		fi
-		if is_secret "$line"
+		elif is_secret "$line"
 		then
 			export_secret "$line"
+		elif is_command "$line"
+		then
+			export_command "$line"
 		else
 			export_config "$line"
 		fi
